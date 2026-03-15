@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Data Anim
  * Description: WPブロックにdata-animアニメーション機能を追加するプラグイン
- * Version: 1.2.1
+ * Version: 1.2.2
  * Requires at least: 6.0
  * author: NExT-Season
  * author URI: https://next-season.net
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WP_DATA_ANIM_VERSION', '1.2.1' );
+define( 'WP_DATA_ANIM_VERSION', '1.2.2' );
 
 // data-anim ライブラリのバージョンを固定（CDN から取得するため意図しないアップデートを防ぐ）。
 define( 'WP_DATA_ANIM_LIB_VERSION', '1.0.0' );
@@ -51,7 +51,7 @@ function wp_data_anim_enqueue_editor_assets(): void {
 add_action( 'enqueue_block_editor_assets', 'wp_data_anim_enqueue_editor_assets' );
 
 /**
- * フロントエンドに data-anim ライブラリ（CDN）を読み込む。
+ * フロントエンドにスタイルと data-anim ライブラリ（CDN）を読み込む。
  *
  * パフォーマンスのため、ページ内にアニメーション設定が存在する場合のみ読み込む。
  * CDN URL はバージョンを固定して意図しないアップデートを防ぐ。
@@ -67,12 +67,28 @@ function wp_data_anim_enqueue_frontend(): void {
 		return;
 	}
 
+	wp_enqueue_style(
+		'wp-data-anim',
+		plugin_dir_url( __FILE__ ) . 'src/style.css',
+		array(),
+		WP_DATA_ANIM_VERSION
+	);
+
 	wp_enqueue_script(
 		'data-anim',
 		'https://unpkg.com/data-anim@' . WP_DATA_ANIM_LIB_VERSION . '/dist/data-anim.min.js',
 		array(),
 		WP_DATA_ANIM_LIB_VERSION,
 		true
+	);
+
+	// bounceInUp / bounceInDown の to キーフレームに opacity が含まれないため、
+	// アニメーション終了後にライブラリの opacity:0 CSS が復活して要素が消える問題を修正する。
+	// ライブラリが @keyframes を挿入した直後に上書きすることで正しい終了状態を保証する。
+	wp_add_inline_script(
+		'data-anim',
+		'document.head.insertAdjacentHTML("beforeend","<style>@keyframes da-bounceInUp{0%{opacity:0;transform:translateY(50px)}60%{opacity:1;transform:translateY(-10px)}80%{transform:translateY(5px)}to{opacity:1;transform:none}}@keyframes da-bounceInDown{0%{opacity:0;transform:translateY(-50px)}60%{opacity:1;transform:translateY(10px)}80%{transform:translateY(-5px)}to{opacity:1;transform:none}}</style>");',
+		'after'
 	);
 }
 add_action( 'wp_enqueue_scripts', 'wp_data_anim_enqueue_frontend' );
@@ -82,6 +98,7 @@ add_action( 'wp_enqueue_scripts', 'wp_data_anim_enqueue_frontend' );
  *
  * getSaveContent.extraProps は静的ブロックのみ対象のため、ダイナミックブロック
  * （render_callback 使用）でも動作するよう render_block フィルターで処理する。
+ * 静的ブロックは保存済み HTML に既に data-anim が含まれるためスキップする。
  *
  * @param string               $block_content レンダリングされた HTML。
  * @param array<string, mixed> $block         ブロックデータ。
@@ -91,6 +108,11 @@ function wp_data_anim_render_block( string $block_content, array $block ): strin
 	$attrs = $block['attrs'] ?? array();
 
 	if ( empty( $attrs['dataAnim'] ) ) {
+		return $block_content;
+	}
+
+	// 静的ブロックは addAnimSaveProps が保存済み HTML に data-anim を付与済みのため二重付与を防ぐ。
+	if ( false !== strpos( $block_content, ' data-anim=' ) ) {
 		return $block_content;
 	}
 
