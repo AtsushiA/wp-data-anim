@@ -1,16 +1,16 @@
 ( function ( wp ) {
-	var registerBlockType  = wp.blocks.registerBlockType;
-	var __                 = wp.i18n.__;
-	var useBlockProps      = wp.blockEditor.useBlockProps;
-	var InspectorControls  = wp.blockEditor.InspectorControls;
-	var InnerBlocks        = wp.blockEditor.InnerBlocks;
-	var PanelBody          = wp.components.PanelBody;
-	var SelectControl      = wp.components.SelectControl;
-	var RangeControl       = wp.components.RangeControl;
-	var TextControl        = wp.components.TextControl;
-	var ToggleControl      = wp.components.ToggleControl;
-	var Fragment           = wp.element.Fragment;
-	var createElement      = wp.element.createElement;
+	var addFilter      = wp.hooks.addFilter;
+	var __             = wp.i18n.__;
+	var InspectorControls = wp.blockEditor.InspectorControls;
+	var PanelBody      = wp.components.PanelBody;
+	var SelectControl  = wp.components.SelectControl;
+	var RangeControl   = wp.components.RangeControl;
+	var TextControl    = wp.components.TextControl;
+	var ToggleControl  = wp.components.ToggleControl;
+	var Fragment       = wp.element.Fragment;
+	var createElement  = wp.element.createElement;
+	var createHigherOrderComponent = wp.compose.createHigherOrderComponent;
+	var assign         = Object.assign;
 
 	// ─── アニメーション名リスト ───────────────────────────────────────
 	var ANIMATION_OPTIONS = [
@@ -73,186 +73,174 @@
 		{ label: 'デスクトップで無効', value: 'desktop' },
 	];
 
-	// ─── ブロック登録 ────────────────────────────────────────────────
-	registerBlockType( 'wp-data-anim/data-anim', {
-		apiVersion: 3,
-		title:      __( 'Data Anim', 'wp-data-anim' ),
-		icon:       'animation',
-		category:   'design',
-		supports:   { html: false, align: [ 'wide', 'full' ] },
+	// ─── 全ブロックにアニメーション属性を追加 ───────────────────────
+	function addAnimAttributes( settings ) {
+		settings.attributes = assign( {}, settings.attributes, {
+			dataAnim:         { type: 'string',  default: '' },
+			dataAnimTrigger:  { type: 'string',  default: 'scroll' },
+			dataAnimDuration: { type: 'number',  default: 1600 },
+			dataAnimDelay:    { type: 'number',  default: 0 },
+			dataAnimEasing:   { type: 'string',  default: 'ease' },
+			dataAnimOffset:   { type: 'number',  default: 0.2 },
+			dataAnimDistance: { type: 'string',  default: '30px' },
+			dataAnimOnce:     { type: 'boolean', default: false },
+			dataAnimMirror:   { type: 'boolean', default: false },
+			dataAnimDisable:  { type: 'string',  default: '' },
+		} );
+		return settings;
+	}
 
-		attributes: {
-			animName:     { type: 'string',  default: 'fadeIn' },
-			animTrigger:  { type: 'string',  default: 'scroll' },
-			animDuration: { type: 'number',  default: 1600 },
-			animDelay:    { type: 'number',  default: 0 },
-			animEasing:   { type: 'string',  default: 'ease' },
-			animOffset:   { type: 'number',  default: 0.2 },
-			animDistance: { type: 'string',  default: '30px' },
-			animOnce:     { type: 'boolean', default: false },
-			animMirror:   { type: 'boolean', default: false },
-			animDisable:  { type: 'string',  default: '' },
-		},
+	addFilter(
+		'blocks.registerBlockType',
+		'wp-data-anim/add-attributes',
+		addAnimAttributes
+	);
 
-		// ─── エディター表示 ──────────────────────────────────────────
-		edit: function ( props ) {
+	// ─── エディターに InspectorControls パネルを追加 ────────────────
+	var withAnimControls = createHigherOrderComponent( function ( BlockEdit ) {
+		return function ( props ) {
 			var attrs = props.attributes;
 			var set   = props.setAttributes;
 
-			var blockProps = useBlockProps( {
-				className: 'wp-data-anim-editor-wrapper',
-			} );
-
 			return createElement( Fragment, null,
-
-				// Inspector パネル
+				createElement( BlockEdit, props ),
 				createElement( InspectorControls, null,
 					createElement( PanelBody, {
 						title: __( 'アニメーション設定', 'wp-data-anim' ),
-						initialOpen: true,
+						initialOpen: false,
 					},
-
 						createElement( SelectControl, {
 							label:    __( 'アニメーション種類', 'wp-data-anim' ),
-							value:    attrs.animName,
+							value:    attrs.dataAnim,
 							options:  ANIMATION_OPTIONS,
-							onChange: function ( v ) { set( { animName: v } ); },
+							onChange: function ( v ) { set( { dataAnim: v } ); },
 						} ),
 
-						attrs.animName && createElement( Fragment, null,
+						attrs.dataAnim && createElement( Fragment, null,
 
 							createElement( SelectControl, {
 								label:    __( 'トリガー', 'wp-data-anim' ),
-								value:    attrs.animTrigger,
+								value:    attrs.dataAnimTrigger,
 								options:  TRIGGER_OPTIONS,
-								onChange: function ( v ) { set( { animTrigger: v } ); },
+								onChange: function ( v ) { set( { dataAnimTrigger: v } ); },
 							} ),
 
 							createElement( RangeControl, {
 								label:    __( 'duration（再生時間 ms）', 'wp-data-anim' ),
-								value:    attrs.animDuration,
+								value:    attrs.dataAnimDuration,
 								min:      100,
 								max:      5000,
 								step:     100,
-								onChange: function ( v ) { set( { animDuration: v } ); },
+								onChange: function ( v ) { set( { dataAnimDuration: v } ); },
 							} ),
 
 							createElement( RangeControl, {
 								label:    __( 'delay（遅延 ms）', 'wp-data-anim' ),
-								value:    attrs.animDelay,
+								value:    attrs.dataAnimDelay,
 								min:      0,
 								max:      3000,
 								step:     100,
-								onChange: function ( v ) { set( { animDelay: v } ); },
+								onChange: function ( v ) { set( { dataAnimDelay: v } ); },
 							} ),
 
 							createElement( SelectControl, {
 								label:    __( 'イージング', 'wp-data-anim' ),
-								value:    attrs.animEasing,
+								value:    attrs.dataAnimEasing,
 								options:  EASING_OPTIONS,
-								onChange: function ( v ) { set( { animEasing: v } ); },
+								onChange: function ( v ) { set( { dataAnimEasing: v } ); },
 							} ),
 
 							createElement( RangeControl, {
 								label:    __( 'offset（表示割合 0〜1）', 'wp-data-anim' ),
-								value:    attrs.animOffset,
+								value:    attrs.dataAnimOffset,
 								min:      0,
 								max:      1,
 								step:     0.05,
-								onChange: function ( v ) { set( { animOffset: v } ); },
+								onChange: function ( v ) { set( { dataAnimOffset: v } ); },
 							} ),
 
 							createElement( TextControl, {
 								label:    __( 'distance（移動距離）', 'wp-data-anim' ),
-								value:    attrs.animDistance,
+								value:    attrs.dataAnimDistance,
 								help:     __( '例: 30px, 50px', 'wp-data-anim' ),
-								onChange: function ( v ) { set( { animDistance: v } ); },
+								onChange: function ( v ) { set( { dataAnimDistance: v } ); },
 							} ),
 
 							createElement( ToggleControl, {
 								label:    __( '1回だけ再生（once）', 'wp-data-anim' ),
-								checked:  attrs.animOnce,
-								onChange: function ( v ) { set( { animOnce: v } ); },
+								checked:  attrs.dataAnimOnce,
+								onChange: function ( v ) { set( { dataAnimOnce: v } ); },
 							} ),
 
 							createElement( ToggleControl, {
 								label:    __( 'ミラー再生（viewport 離脱時に逆再生）', 'wp-data-anim' ),
-								checked:  attrs.animMirror,
-								onChange: function ( v ) { set( { animMirror: v } ); },
+								checked:  attrs.dataAnimMirror,
+								onChange: function ( v ) { set( { dataAnimMirror: v } ); },
 							} ),
 
 							createElement( SelectControl, {
 								label:    __( 'デバイス無効化', 'wp-data-anim' ),
-								value:    attrs.animDisable,
+								value:    attrs.dataAnimDisable,
 								options:  DISABLE_OPTIONS,
-								onChange: function ( v ) { set( { animDisable: v } ); },
+								onChange: function ( v ) { set( { dataAnimDisable: v } ); },
 							} )
 
-						) // end attrs.animName &&
+						) // end attrs.dataAnim &&
 					) // end PanelBody
-				), // end InspectorControls
-
-				// ブロック本体
-				createElement( 'div', blockProps,
-					createElement( 'div', { className: 'wp-data-anim-editor-label' },
-						createElement( 'span', null,
-							__( 'Data Anim', 'wp-data-anim' ) + ': ' + ( attrs.animName || __( 'なし', 'wp-data-anim' ) )
-						)
-					),
-					createElement( InnerBlocks, {
-					__experimentalLayout: {
-						type: 'default',
-						alignments: [ 'wide', 'full' ],
-					},
-				} )
-				)
+				) // end InspectorControls
 			);
-		},
+		};
+	}, 'withAnimControls' );
 
-		// ─── フロントエンド保存 ───────────────────────────────────────
-		save: function ( props ) {
-			var attrs = props.attributes;
+	addFilter(
+		'editor.BlockEdit',
+		'wp-data-anim/with-controls',
+		withAnimControls
+	);
 
-			// data-* 属性を組み立て（デフォルト値は省略してHTML軽量化）
-			var extraProps = {};
+	// ─── 保存時に data-* 属性を付与 ─────────────────────────────────
+	function addAnimSaveProps( extraProps, _blockType, attrs ) {
+		if ( ! attrs.dataAnim ) {
+			return extraProps;
+		}
 
-			if ( attrs.animName ) {
-				extraProps[ 'data-anim' ] = attrs.animName;
-			}
-			if ( attrs.animTrigger && attrs.animTrigger !== 'scroll' ) {
-				extraProps[ 'data-anim-trigger' ] = attrs.animTrigger;
-			}
-			if ( attrs.animDuration && attrs.animDuration !== 1600 ) {
-				extraProps[ 'data-anim-duration' ] = attrs.animDuration;
-			}
-			if ( attrs.animDelay && attrs.animDelay > 0 ) {
-				extraProps[ 'data-anim-delay' ] = attrs.animDelay;
-			}
-			if ( attrs.animEasing && attrs.animEasing !== 'ease' ) {
-				extraProps[ 'data-anim-easing' ] = attrs.animEasing;
-			}
-			if ( typeof attrs.animOffset === 'number' && attrs.animOffset !== 0.2 ) {
-				extraProps[ 'data-anim-offset' ] = attrs.animOffset;
-			}
-			if ( attrs.animDistance && attrs.animDistance !== '30px' ) {
-				extraProps[ 'data-anim-distance' ] = attrs.animDistance;
-			}
-			if ( attrs.animOnce ) {
-				extraProps[ 'data-anim-once' ] = '';
-			}
-			if ( attrs.animMirror ) {
-				extraProps[ 'data-anim-mirror' ] = '';
-			}
-			if ( attrs.animDisable ) {
-				extraProps[ 'data-anim-disable' ] = attrs.animDisable;
-			}
+		extraProps[ 'data-anim' ] = attrs.dataAnim;
 
-			var blockProps = wp.blockEditor.useBlockProps.save( extraProps );
+		if ( attrs.dataAnimTrigger && attrs.dataAnimTrigger !== 'scroll' ) {
+			extraProps[ 'data-anim-trigger' ] = attrs.dataAnimTrigger;
+		}
+		if ( attrs.dataAnimDuration && attrs.dataAnimDuration !== 1600 ) {
+			extraProps[ 'data-anim-duration' ] = attrs.dataAnimDuration;
+		}
+		if ( attrs.dataAnimDelay && attrs.dataAnimDelay > 0 ) {
+			extraProps[ 'data-anim-delay' ] = attrs.dataAnimDelay;
+		}
+		if ( attrs.dataAnimEasing && attrs.dataAnimEasing !== 'ease' ) {
+			extraProps[ 'data-anim-easing' ] = attrs.dataAnimEasing;
+		}
+		if ( typeof attrs.dataAnimOffset === 'number' && attrs.dataAnimOffset !== 0.2 ) {
+			extraProps[ 'data-anim-offset' ] = attrs.dataAnimOffset;
+		}
+		if ( attrs.dataAnimDistance && attrs.dataAnimDistance !== '30px' ) {
+			extraProps[ 'data-anim-distance' ] = attrs.dataAnimDistance;
+		}
+		if ( attrs.dataAnimOnce ) {
+			extraProps[ 'data-anim-once' ] = '';
+		}
+		if ( attrs.dataAnimMirror ) {
+			extraProps[ 'data-anim-mirror' ] = '';
+		}
+		if ( attrs.dataAnimDisable ) {
+			extraProps[ 'data-anim-disable' ] = attrs.dataAnimDisable;
+		}
 
-			return createElement( 'div', blockProps,
-				createElement( InnerBlocks.Content, null )
-			);
-		},
-	} );
+		return extraProps;
+	}
+
+	addFilter(
+		'blocks.getSaveContent.extraProps',
+		'wp-data-anim/save-props',
+		addAnimSaveProps
+	);
 
 } )( window.wp );
