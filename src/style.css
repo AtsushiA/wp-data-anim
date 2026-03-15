@@ -19,3 +19,25 @@
 [data-anim="rubberBand"] {
 	opacity: 1 !important;
 }
+
+/*
+ * clipReveal: keyframes は clip-path のみで opacity を操作しない。
+ * アニメーション前は clip-path で要素を隠し、opacity:1 を強制してアニメーションを有効にする。
+ * アニメーション中は keyframes が clip-path を上書きするため reveal 効果は正常に動作する。
+ */
+[data-anim="clipReveal"]:not([data-anim-trigger="hover"]):not([data-anim-trigger="click"]) {
+	clip-path: inset(0 100% 0 0);
+	opacity: 1 !important;
+}
+
+/*
+ * typewriter: keyframes は max-width のみで opacity を操作しない。
+ * アニメーション前は max-width:0 でテキストを隠し、opacity:1 を強制してアニメーションを有効にする。
+ * アニメーション中は keyframes が max-width を上書きするためタイプライター効果は正常に動作する。
+ */
+[data-anim="typewriter"]:not([data-anim-trigger="hover"]):not([data-anim-trigger="click"]) {
+	max-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	opacity: 1 !important;
+}
