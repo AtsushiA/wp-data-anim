@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "wp-data-anim/data-anim",
+  "title": "Data Anim",
+  "category": "design",
+  "icon": "animation",
+  "description": "InnerBlocks をラップしてスクロール・クリック・ホバーなどのトリガーでアニメーションを付与するブロックです。",
+  "supports": {
+    "html": false,
+    "color": {
+      "background": true,
+      "text": true
+    },
+    "spacing": {
+      "padding": true,
+      "margin": true
+    }
+  },
+  "textdomain": "wp-data-anim",
+  "editorScript": "file:./src/editor.js",
+  "editorStyle": "file:./src/editor-style.css",
+  "style": "file:./src/style.css"
+}
