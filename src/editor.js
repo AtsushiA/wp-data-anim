@@ -79,7 +79,7 @@
 		title:      __( 'Data Anim', 'wp-data-anim' ),
 		icon:       'animation',
 		category:   'design',
-		supports:   { html: false },
+		supports:   { html: false, align: [ 'wide', 'full' ] },
 
 		attributes: {
 			animName:     { type: 'string',  default: 'fadeIn' },
@@ -199,7 +199,12 @@
 							__( 'Data Anim', 'wp-data-anim' ) + ': ' + ( attrs.animName || __( 'なし', 'wp-data-anim' ) )
 						)
 					),
-					createElement( InnerBlocks, null )
+					createElement( InnerBlocks, {
+					__experimentalLayout: {
+						type: 'default',
+						alignments: [ 'wide', 'full' ],
+					},
+				} )
 				)
 			);
 		},
