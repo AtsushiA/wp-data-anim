@@ -8,7 +8,6 @@
   "description": "InnerBlocks をラップしてスクロール・クリック・ホバーなどのトリガーでアニメーションを付与するブロックです。",
   "supports": {
     "html": false,
-    "align": ["wide", "full"],
     "layout": {
       "default": { "type": "constrained" },
       "allowEditing": false
