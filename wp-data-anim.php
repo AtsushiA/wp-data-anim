@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Data Anim
  * Description: WPブロックにdata-animアニメーション機能を追加するプラグイン
- * Version: 1.2.0
+ * Version: 1.2.1
  * Requires at least: 6.0
  * author: NExT-Season
  * author URI: https://next-season.net
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WP_DATA_ANIM_VERSION', '1.2.0' );
+define( 'WP_DATA_ANIM_VERSION', '1.2.1' );
 
 // data-anim ライブラリのバージョンを固定（CDN から取得するため意図しないアップデートを防ぐ）。
 define( 'WP_DATA_ANIM_LIB_VERSION', '1.0.0' );

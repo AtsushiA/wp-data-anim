@@ -4,3 +4,18 @@
  * アニメーション自体は data-anim ライブラリ（CDN）が管理するため、
  * このファイルはプラグイン固有のレイアウト調整のみ担当します。
  */
+
+/*
+ * data-anim ライブラリは初期化時にスクロール/ロードトリガー要素へ opacity:0 を付与する。
+ * bounce / shake / pulse などの注目系アニメーションはキーフレームで opacity を操作しないため、
+ * アニメーション中も要素が不可視になる問題を防ぐ。
+ */
+[data-anim="bounce"],
+[data-anim="shake"],
+[data-anim="pulse"],
+[data-anim="wobble"],
+[data-anim="flip"],
+[data-anim="swing"],
+[data-anim="rubberBand"] {
+	opacity: 1 !important;
+}
