@@ -1,5 +1,7 @@
 # WP Data Anim
 
+[![Try in WordPress Playground](https://img.shields.io/badge/Try%20in-WordPress%20Playground-3858e9?logo=wordpress)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/AtsushiA/wp-data-anim/main/blueprint.json)
+
 WordPress ブロックエディター（Gutenberg）にアニメーション機能を追加するプラグインです。
 [data-anim](https://github.com/ryo-manba/data-anim) ライブラリをベースにしており、スクロール・クリック・ホバーなど多彩なトリガーで 30 種類以上のアニメーションを設定できます。
 
